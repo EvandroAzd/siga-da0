@@ -1,59 +1,50 @@
-# SIGA — Atividade de Persistência e padrão DAO (código inicial)
+# SIGA DAO
 
-**Técnicas de Programação II (TP2) · Aula 7** — CST em Desenvolvimento de Software Multiplataforma · Fatec de Porto Ferreira
+Atividade prática da Aula 7 de Técnicas de Programação II (FATEC Porto Ferreira).
 
-Este é o **código inicial** da atividade prática da Aula 7. Ele contém, de forma **proposital**, comandos SQL misturados à regra de negócio. O programa compila e executa — o problema não é o funcionamento, e sim o acoplamento entre domínio e tecnologia de persistência.
+Demonstra o padrão **DAO (Data Access Object)** aplicando os princípios **SRP** e **DIP**.
 
-## Estrutura do projeto
+## Pré-requisitos
 
-```
-siga-dao/
-└── src/
-    └── siga/
-        ├── Aluno.java             (entidade de domínio; pronta)
-        ├── BancoSimulado.java     (simula o banco; representa a tecnologia)
-        ├── ServicoMatricula.java  (contém os problemas a refatorar)
-        └── Main.java              (demonstra os problemas em execução)
-```
+- Java 11+
+- IntelliJ IDEA
+- MariaDB instalado (para usar `AlunoDAOBanco`)
 
-> O `BancoSimulado` existe apenas para o projeto rodar **sem** um servidor de banco instalado. Trate-o como se fosse o driver JDBC real: é a tecnologia da qual a regra de negócio não deveria depender. Não é necessário alterá-lo.
+## Configuração do banco
 
-## Como compilar e executar
-
-Pré-requisito: JDK 17 ou superior (`java -version` para verificar).
+Execute o script `banco.sql` no MariaDB:
 
 ```bash
-# 1. Compilar (a saída vai para a pasta "bin")
-javac -d bin src/siga/*.java
-
-# 2. Executar
-java -cp bin siga.Main
+mariadb -u root < banco.sql
 ```
 
-## Os problemas propositais
+## Variável de ambiente
 
-| Local | Problema | Princípio violado |
-|---|---|---|
-| `ServicoMatricula.matricular` | Monta e executa SQL dentro do método que valida a matrícula. | **SRP** — dois motivos para mudar |
-| `ServicoMatricula` | Depende diretamente da tecnologia de persistência. | **DIP** — depende de implementação, não de abstração |
-| `matricular` e `gerarRelatorio` | O mesmo acesso a dados aparece duplicado. | **DRY** — não se repita |
+A senha do banco é lida via variável de ambiente. Configure antes de rodar:
 
-Consequência prática: para testar a regra "a média não pode ser negativa", seria preciso ter um banco disponível. Testar um `if` exigindo infraestrutura é sinal de design acoplado.
+```bash
+export DB_SENHA=suasenha
+```
 
-## Sua tarefa
+No IntelliJ: `Run → Edit Configurations → Environment variables` e adicione `DB_SENHA=suasenha`.
 
-Siga as etapas da ficha de atividade prática:
+## Como rodar
 
-1. **Identificar** o SQL misturado à regra de negócio e registrar, por escrito, as violações de SRP e DIP e a duplicação.
-2. **Definir a interface `AlunoDAO`** com as operações do domínio: `inserir`, `buscarPorMatricula`, `listarTodos`, `atualizar` e `remover`. Use o vocabulário do domínio — sem `tabela`, `coluna` ou `INSERT` nos nomes.
-3. **Implementar `AlunoDAOMemoria`**, guardando os alunos em um `Map<String, Aluno>` interno. (Opcionalmente, implemente também um `AlunoDAOBanco` que use o `BancoSimulado`.)
-4. **Refatorar `ServicoMatricula`** para receber um `AlunoDAO` pelo construtor e remover todo o SQL da classe; ela deve conter apenas regra de negócio.
-5. **Demonstrar a troca** de implementação do DAO no `Main`, sem alterar uma linha da regra de negócio.
+1. Clone o repositório
+2. Abra no IntelliJ IDEA
+3. Adicione o driver MariaDB: `File → Project Structure → Libraries → + → Java` e selecione o `mariadb-java-client.jar`
+4. Configure a variável de ambiente `DB_SENHA`
+5. Execute a classe `Main`
 
-## Critério de sucesso
+## Estrutura
 
-Ao final: (a) a classe `ServicoMatricula` **não deve conter nenhum comando SQL**; (b) deve ser possível **trocar a implementação** do DAO passando outro objeto no construtor; e (c) deve ser possível **testar a regra da média sem banco de dados**, usando o DAO em memória.
-
-## Padrão de entrega
-
-Conforme a ficha de atividade prática: identificadores em português, um arquivo `.java` por classe pública, código formatado, entrega no repositório Git com README e commits descritivos.
+```
+src/siga/
+├── AlunoDAO.java          # Interface do padrão DAO
+├── AlunoDAOMemoria.java   # Implementação em memória (HashMap)
+├── AlunoDAOBanco.java     # Implementação com MariaDB (JDBC)
+├── ConexaoBanco.java      # Gerencia a conexão com o banco
+├── ServicoMatricula.java  # Regra de negócio — depende só da interface
+├── Aluno.java             # Entidade de domínio
+└── Main.java              # Demonstra a troca de implementação
+```
