@@ -1,0 +1,9 @@
+CREATE DATABASE IF NOT EXISTS aluno-dao;
+USE aluno-dao;
+
+CREATE TABLE IF NOT EXISTS aluno (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    matricula VARCHAR(20) UNIQUE NOT NULL,
+    nome VARCHAR(100),
+    media DOUBLE
+    );
