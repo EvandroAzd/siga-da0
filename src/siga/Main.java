@@ -11,27 +11,31 @@ package siga;
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("=== SIGA - Atividade de Persistência e DAO (código inicial) ===\n");
 
-        ServicoMatricula servico = new ServicoMatricula();
+        System.out.println("=== Usando AlunoDAOMemoria ===\n");
 
-        servico.matricular(new Aluno("Maria Silva", "2026001", 8.5));
-        servico.matricular(new Aluno("João Souza",  "2026002", 6.0));
-        System.out.println();
+        AlunoDAO daoMemoria = new AlunoDAOMemoria();
+        ServicoMatricula servicoMemoria = new ServicoMatricula(daoMemoria);
 
-        servico.gerarRelatorio();
+        servicoMemoria.matricular(new Aluno("Maria Silva", "2026001", 8.5));
+        servicoMemoria.matricular(new Aluno("João Souza",  "2026002", 6.0));
+        servicoMemoria.gerarRelatorio();
 
-        // A regra de negócio funciona: média inválida é rejeitada.
-        System.out.println();
+        System.out.println("\n=== Usando AlunoDAOBanco ===\n");
+
+        AlunoDAO daoBanco = new AlunoDAOBanco();
+        ServicoMatricula servicoBanco = new ServicoMatricula(daoBanco);
+
+        servicoBanco.matricular(new Aluno("Maria Silva", "2026001", 8.5));
+        servicoBanco.matricular(new Aluno("João Souza",  "2026002", 6.0));
+        servicoBanco.gerarRelatorio();
+
+        System.out.println("\n=== Regra de negócio funciona independente do DAO ===\n");
+
         try {
-            servico.matricular(new Aluno("Teste Inválido", "2026003", -1));
+            servicoMemoria.matricular(new Aluno("Teste Inválido", "2026003", -1));
         } catch (IllegalArgumentException e) {
             System.out.println("Regra de negócio funcionou: " + e.getMessage());
         }
-
-        System.out.println("\nObserve: para testar a regra da média, foi preciso passar");
-        System.out.println("pela camada de persistência. O SQL está dentro da classe de");
-        System.out.println("negócio (viola SRP e DIP) e o acesso a dados está duplicado.");
-        System.out.println("Sua tarefa é extrair a interface AlunoDAO e injetá-la no serviço.");
     }
 }
